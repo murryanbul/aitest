@@ -1,0 +1,21 @@
+body {
+    background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
+    min-height: 100vh;
+}
+.card {
+    border-radius: 1rem;
+}
+.text-gradient {
+    background: linear-gradient(90deg, #7f53ac, #647dee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.file-row .file-icon {
+    font-size: 1.5em;
+    vertical-align: middle;
+}
+.btn-primary {
+    background: linear-gradient(90deg, #647dee, #7f53ac);
+    border: none;
+}
+
