@@ -1,18 +1,45 @@
 body {
     background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
     min-height: 100vh;
+    color: #fff;
 }
 .card {
     border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 .text-gradient {
     background: linear-gradient(90deg, #7f53ac, #647dee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+.upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 1rem;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+.upload-area.dragover {
+    background: rgba(255, 255, 255, 0.2);
+}
 .file-row .file-icon {
     font-size: 1.5em;
     vertical-align: middle;
+}
+.thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+}
+.list-group-item {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .btn-primary {
     background: linear-gradient(90deg, #647dee, #7f53ac);
