@@ -6,31 +6,74 @@ function postJSON(url, data) {
   }).then(res => res.json());
 }
 
-document.querySelectorAll('.delete-btn').forEach(btn => {
-  btn.onclick = function () {
-    if (confirm('Delete "' + this.dataset.path + '"?')) {
-      fetch('/delete/' + encodeURIComponent(this.dataset.path), { method: 'POST' })
+function showAlert(msg, type = 'danger') {
+  const container = document.querySelector('.container');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = `alert alert-${type} alert-dismissible fade`;
+  div.role = 'alert';
+  div.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+  container.prepend(div);
+  new bootstrap.Alert(div);
+  requestAnimationFrame(() => div.classList.add('show'));
+}
+
+let deletePaths = [];
+const confirmModalEl = document.getElementById('confirmModal');
+const confirmMessage = document.getElementById('confirmMessage');
+const confirmOkBtn = document.getElementById('confirmOkBtn');
+const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
+
+if (confirmOkBtn) {
+  confirmOkBtn.onclick = function () {
+    if (!deletePaths.length) return;
+    const paths = deletePaths.slice();
+    if (paths.length > 1) {
+      postJSON('/bulk_delete', { paths }).then(() => location.reload());
+    } else {
+      fetch('/delete/' + encodeURIComponent(paths[0]), { method: 'POST' })
         .then(res => res.json())
         .then(() => location.reload());
     }
   };
+}
+
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.onclick = function () {
+    deletePaths = [this.dataset.path];
+    if (confirmMessage) confirmMessage.textContent = 'Delete "' + this.dataset.path.split('/').pop() + '"?';
+    if (confirmModal) confirmModal.show();
+  };
 });
+
+let renamePath = null;
+const renameModalEl = document.getElementById('renameModal');
+const renameModal = renameModalEl ? new bootstrap.Modal(renameModalEl) : null;
+const renameInput = document.getElementById('renameInput');
+const renameSaveBtn = document.getElementById('renameSaveBtn');
 
 document.querySelectorAll('.rename-btn').forEach(btn => {
   btn.onclick = function () {
-    const current = this.dataset.path.split('/').pop();
-    const newName = prompt('Rename to:', current);
+    renamePath = this.dataset.path;
+    if (renameInput) renameInput.value = renamePath.split('/').pop();
+    if (renameModal) renameModal.show();
+  };
+});
+
+if (renameSaveBtn) {
+  renameSaveBtn.onclick = function () {
+    const newName = renameInput.value.trim();
     if (!newName) return;
-    fetch('/rename/' + encodeURIComponent(this.dataset.path), {
+    fetch('/rename/' + encodeURIComponent(renamePath), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ new_name: newName })
     }).then(res => res.json()).then(d => {
       if (d.success) location.reload();
-      else alert('Rename failed');
+      else showAlert('Rename failed');
     });
   };
-});
+}
 
 document.querySelectorAll('.qr-btn').forEach(btn => {
   btn.onclick = function () {
@@ -75,7 +118,7 @@ function uploadFile(file) {
     if (xhr.status === 200) {
       location.reload();
     } else {
-      alert('Upload failed');
+      showAlert('Upload failed');
     }
   };
   xhr.send(formData);
@@ -96,13 +139,25 @@ if (dropZone && fileInput) {
   fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 }
 
+const folderModalEl = document.getElementById('folderModal');
+const folderModal = folderModalEl ? new bootstrap.Modal(folderModalEl) : null;
+const folderNameInput = document.getElementById('folderNameInput');
+const folderCreateBtn = document.getElementById('folderCreateBtn');
+
 const newFolderBtn = document.getElementById('newFolderBtn');
-if (newFolderBtn) {
+if (newFolderBtn && folderModal) {
   newFolderBtn.onclick = function () {
-    const name = prompt('Folder name?');
+    if (folderNameInput) folderNameInput.value = '';
+    folderModal.show();
+  };
+}
+
+if (folderCreateBtn) {
+  folderCreateBtn.onclick = function () {
+    const name = folderNameInput.value.trim();
     if (!name) return;
     postJSON('/create_folder', { path: CURRENT_PATH, folder_name: name })
-      .then(d => { if (d.success) location.reload(); else alert('Failed to create folder'); });
+      .then(d => { if (d.success) location.reload(); else showAlert('Failed to create folder'); });
   };
 }
 
@@ -111,8 +166,9 @@ if (bulkDeleteBtn) {
   bulkDeleteBtn.onclick = function () {
     const selected = Array.from(document.querySelectorAll('.select-box:checked')).map(cb => cb.value);
     if (!selected.length) return;
-    if (!confirm('Delete selected items?')) return;
-    postJSON('/bulk_delete', { paths: selected }).then(() => location.reload());
+    deletePaths = selected;
+    if (confirmMessage) confirmMessage.textContent = 'Delete selected items?';
+    if (confirmModal) confirmModal.show();
   };
 }
 
